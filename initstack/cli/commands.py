@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import shutil
+import subprocess
 
 from initstack.core.templates import get_template, list_templates
 from initstack.core.filesystem import create_structure
@@ -87,6 +88,29 @@ def cmd_doctor(_):
 
 
 # -------------------------
+# COMMAND: initstack self-update
+# -------------------------
+def cmd_self_update(_):
+    info("Updating Initstack...")
+
+    # Use current Python interpreter
+    cmd = [
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "--upgrade",
+        "initstack"
+    ]
+
+    try:
+        subprocess.run(cmd, check=True)
+        success("Initstack updated successfully")
+    except subprocess.CalledProcessError:
+        error("Self-update failed. Check your network or permissions.")
+
+
+# -------------------------
 # ARGPARSE BUILDER
 # -------------------------
 def build_parser():
@@ -116,5 +140,11 @@ def build_parser():
         "doctor", help="Check environment health"
     )
     doctor_cmd.set_defaults(func=cmd_doctor)
+
+    # self-update
+    update_cmd = subparsers.add_parser(
+        "self-update", help="Update initstack to the latest version"
+    )
+    update_cmd.set_defaults(func=cmd_self_update)
 
     return parser
