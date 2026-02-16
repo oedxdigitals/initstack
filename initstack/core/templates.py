@@ -1,4 +1,5 @@
 # initstack/core/templates.py
+from initstack.core.plugins import load_plugins
 
 def python_template():
     return {
@@ -36,7 +37,14 @@ TEMPLATES = {
 }
 
 def get_template(name):
-    return TEMPLATES.get(name, TEMPLATES["custom"])()
+plugins = load_plugins()
+if name in plugins:
+    base, meta = plugins[name]
+    files = {}
+    for dst, src in meta["files"].items():
+        with open(base / src) as f:
+            files[dst] = f.read()
+    return files
 
 def list_templates():
     return TEMPLATES.keys()
