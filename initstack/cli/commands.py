@@ -6,6 +6,7 @@ import shutil
 from initstack.core.templates import get_template, list_templates
 from initstack.core.filesystem import create_structure
 from initstack.core.environment import detect_environment
+from initstack.core.gitutils import init_git_repo, add_license
 from initstack.utils.output import info, success, error
 
 
@@ -24,10 +25,26 @@ def cmd_new(args):
 
     info(f"Initializing {project_type} project: {project_name}")
 
+    # Create project structure
     structure = get_template(project_type)
     create_structure(base_path, structure)
 
-    success("Project initialized")
+    # Optional git init
+    if shutil.which("git"):
+        use_git = input("Initialize git repository? (y/n): ").strip().lower() == "y"
+        if use_git:
+            init_git_repo(base_path)
+            success("Git repository initialized")
+
+            license_name = input("License (MIT / none): ").strip().upper()
+            if license_name == "MIT":
+                author = input("Author name: ").strip()
+                add_license(base_path, "MIT", author)
+                success("MIT license added")
+    else:
+        info("Git not available — skipping git initialization")
+
+    success("Project initialized successfully")
 
 
 # -------------------------
@@ -53,19 +70,20 @@ def cmd_doctor(_):
     print(f"Environment    : {env}")
 
     # Git
-    git_status = "YES" if shutil.which("git") else "NO"
-    print(f"Git available  : {git_status}")
+    print(f"Git available  : {'YES' if shutil.which('git') else 'NO'}")
 
     # Write permissions
     writable = os.access(os.getcwd(), os.W_OK)
     print(f"Write access   : {'YES' if writable else 'NO'}")
 
-    # PATH sanity
+    # PATH sanity (best-effort)
+    path_entries = os.environ.get("PATH", "").split(os.pathsep)
     path_ok = any(
-        os.access(os.path.join(p, "initstack"), os.X_OK)
-        for p in os.environ.get("PATH", "").split(os.pathsep)
+        os.path.isfile(os.path.join(p, "initstack")) or
+        os.path.isfile(os.path.join(p, "initstack.exe"))
+        for p in path_entries
     )
-    print(f"PATH OK       : {'YES' if path_ok else 'UNKNOWN'}")
+    print(f"PATH OK        : {'YES' if path_ok else 'UNKNOWN'}")
 
 
 # -------------------------
