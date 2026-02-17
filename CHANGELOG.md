@@ -1,46 +1,70 @@
 # Changelog
-## [Unreleased] (v2.0.0)
 
-### Added
-- Short CLI alias: `ink`
-- Plugin validation via `doctor`
-- Plugin-based template discovery
+All notable changes to this project are documented in this file.
 
-### Planned
-- Short command alias: ink
-- Plugin CLI management
-- Template variables and prompts
-- Remote template repositories
-- Non-interactive / CI mode
-- Doctor auto-fix
-
-All notable changes to this project will be documented in this file.
-
-The format is based on Keep a Changelog,
-and this project adheres to Semantic Versioning.
+This project follows **Semantic Versioning**  
+(https://semver.org)
 
 ---
 
-## [1.5.0] - 2026-02-16
+## [Unreleased] — v2.0.0
 
 ### Added
+- Short CLI alias `ink` as a fully supported alternative to `initstack`
 - Plugin-based template system
-- External templates via ~/.initstack/plugins
-- JSON schema validation for templates
-- `initstack doctor` environment diagnostic command
-- Core project creation module
-- Clean CLI architecture with argparse ownership
-
-### Fixed
-- CLI entrypoint stability issues
-- Editable install behavior
-- Dependency declaration in setup.py
-- Plugin discovery and validation errors
+- External template discovery via `~/.initstack/plugins`
+- `doctor` command with plugin validation
+- FastAPI template plugin support
+- Schema validation for `template.json`
 
 ### Changed
-- Refactored template loading logic
-- Improved error reporting and fail-fast behavior
+- CLI command structure stabilized and hardened
+- Template loading now fails safely on invalid plugins
+- Improved error reporting for template and plugin issues
+
+### Fixed
+- Plugin loading failures causing CLI crashes
+- Silent JSON parsing errors in templates
+- Template detection inconsistencies
+
+### Planned
+- Plugin manager (`ink plugin install | list | remove`)
+- Interactive template variables
+- Remote plugin repositories
+- CI / non-interactive execution mode
+- `doctor --fix` automatic repairs
 
 ---
 
-## [Unreleased]
+## [1.5.0] — 2026-02-17
+
+### Added
+- `doctor` command for environment diagnostics
+- Local plugin directory detection
+- FastAPI template prototype
+- Improved CLI feedback and status messages
+
+### Changed
+- Internal CLI command routing
+- Template resolution logic
+
+### Fixed
+- Template discovery edge cases
+- CLI crashes on malformed templates
+
+---
+
+## [1.4.0]
+
+### Added
+- `initstack new` project scaffolding
+- Built-in templates: `cli`, `python`, `web`
+
+---
+
+## [1.0.0]
+
+### Added
+- Initial Initstack CLI release
+- Project scaffolding engine
+- Template-based generation system
