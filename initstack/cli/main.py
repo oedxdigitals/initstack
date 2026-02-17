@@ -1,16 +1,19 @@
-# initstack/cli/main.py
+import argparse
+import platform
+
 from initstack.cli.commands import build_parser
-from initstack.core.environment import detect_environment
-from initstack.utils.output import info
+
 
 def main():
-    env = detect_environment()
-    info(f"Initstack running on: {env}")
+    print(f"ℹ Initstack running on: {platform.system().lower()}")
 
-    parser = build_parser()
+    parser = argparse.ArgumentParser(
+        prog="initstack",
+        description="Universal, environment-aware project initializer"
+    )
+
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    build_parser(subparsers)
+
     args = parser.parse_args()
-
-    if hasattr(args, "func"):
-        args.func(args)
-    else:
-        parser.print_help()
+    args.func(args)

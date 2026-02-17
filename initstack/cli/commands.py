@@ -1,150 +1,95 @@
-import argparse
-import os
 import sys
-import shutil
-import subprocess
+import os
+import platform
 
-from initstack.core.templates import get_template, list_templates
-from initstack.core.filesystem import create_structure
-from initstack.core.environment import detect_environment
-from initstack.core.gitutils import init_git_repo, add_license
-from initstack.utils.output import info, success, error
+from initstack.core.templates import list_templates, get_template
+from initstack.core.project import create_project
 
 
 # -------------------------
-# COMMAND: initstack new
+# Command handlers
 # -------------------------
-def cmd_new(args):
-    project_type = args.type.lower()
-    project_name = args.name
 
-    base_path = os.path.join(os.getcwd(), project_name)
-
-    if os.path.exists(base_path):
-        error(f"Directory '{project_name}' already exists")
-        sys.exit(1)
-
-    info(f"Initializing {project_type} project: {project_name}")
-
-    # Create project structure
-    structure = get_template(project_type)
-    create_structure(base_path, structure)
-
-    # Optional git init
-    if shutil.which("git"):
-        use_git = input("Initialize git repository? (y/n): ").strip().lower() == "y"
-        if use_git:
-            init_git_repo(base_path)
-            success("Git repository initialized")
-
-            license_name = input("License (MIT / none): ").strip().upper()
-            if license_name == "MIT":
-                author = input("Author name: ").strip()
-                add_license(base_path, "MIT", author)
-                success("MIT license added")
-    else:
-        info("Git not available — skipping git initialization")
-
-    success("Project initialized successfully")
-
-
-# -------------------------
-# COMMAND: initstack list
-# -------------------------
-def cmd_list(_):
-    info("Available templates:")
+def cmd_list(args):
+    print("ℹ Available templates:")
     for name in list_templates():
         print(f"  - {name}")
 
 
-# -------------------------
-# COMMAND: initstack doctor
-# -------------------------
-def cmd_doctor(_):
-    print("Initstack Doctor\n")
+def cmd_new(args):
+    template = get_template(args.template)
+    create_project(template, args.name)
+
+
+def cmd_doctor(args):
+    print("\n🩺 Initstack Doctor Report\n")
 
     # Python
-    print(f"Python version : {sys.version.split()[0]}")
+    print(f"✔ Python executable: {sys.executable}")
+    print(f"✔ Python version: {platform.python_version()}")
 
-    # Environment
-    env = detect_environment()
-    print(f"Environment    : {env}")
+    # OS
+    print(f"✔ Platform: {platform.system().lower()}")
 
-    # Git
-    print(f"Git available  : {'YES' if shutil.which('git') else 'NO'}")
+    # Home directory
+    home = os.path.expanduser("~")
+    print(f"✔ Home directory: {home}")
 
-    # Write permissions
-    writable = os.access(os.getcwd(), os.W_OK)
-    print(f"Write access   : {'YES' if writable else 'NO'}")
+    # Plugin directory
+    plugin_dir = os.path.expanduser("~/.initstack/plugins")
+    print(f"\n🔌 Plugin directory: {plugin_dir}")
 
-    # PATH sanity (best-effort)
-    path_entries = os.environ.get("PATH", "").split(os.pathsep)
-    path_ok = any(
-        os.path.isfile(os.path.join(p, "initstack")) or
-        os.path.isfile(os.path.join(p, "initstack.exe"))
-        for p in path_entries
+    if not os.path.isdir(plugin_dir):
+        print("⚠ Plugin directory does not exist")
+        return
+
+    plugins = os.listdir(plugin_dir)
+    if not plugins:
+        print("⚠ No plugins installed")
+    else:
+        print("✔ Installed plugins:")
+        for p in plugins:
+            print(f"  - {p}")
+
+    print("\n✅ Doctor check complete\n")
+
+
+def cmd_self_update(args):
+    print("ℹ Self-update is not yet implemented")
+    print("ℹ Use: pip install --upgrade initstack")
+
+
+# -------------------------
+# Subcommand registration
+# -------------------------
+
+def build_parser(subparsers):
+    # list
+    p_list = subparsers.add_parser(
+        "list",
+        help="List available templates"
     )
-    print(f"PATH OK        : {'YES' if path_ok else 'UNKNOWN'}")
-
-
-# -------------------------
-# COMMAND: initstack self-update
-# -------------------------
-def cmd_self_update(_):
-    info("Updating Initstack...")
-
-    # Use current Python interpreter
-    cmd = [
-        sys.executable,
-        "-m",
-        "pip",
-        "install",
-        "--upgrade",
-        "initstack"
-    ]
-
-    try:
-        subprocess.run(cmd, check=True)
-        success("Initstack updated successfully")
-    except subprocess.CalledProcessError:
-        error("Self-update failed. Check your network or permissions.")
-
-
-# -------------------------
-# ARGPARSE BUILDER
-# -------------------------
-def build_parser():
-    parser = argparse.ArgumentParser(
-        prog="initstack",
-        description="Universal, environment-aware project initializer"
-    )
-
-    subparsers = parser.add_subparsers(dest="command")
+    p_list.set_defaults(func=cmd_list)
 
     # new
-    new_cmd = subparsers.add_parser(
-        "new", help="Create a new project"
+    p_new = subparsers.add_parser(
+        "new",
+        help="Create a new project"
     )
-    new_cmd.add_argument("type", help="Project type (python, web, cli, custom)")
-    new_cmd.add_argument("name", help="Project name")
-    new_cmd.set_defaults(func=cmd_new)
-
-    # list
-    list_cmd = subparsers.add_parser(
-        "list", help="List available templates"
-    )
-    list_cmd.set_defaults(func=cmd_list)
+    p_new.add_argument("template", help="Template name")
+    p_new.add_argument("name", help="Project directory name")
+    p_new.set_defaults(func=cmd_new)
 
     # doctor
-    doctor_cmd = subparsers.add_parser(
-        "doctor", help="Check environment health"
+    p_doctor = subparsers.add_parser(
+        "doctor",
+        help="Check environment health"
     )
-    doctor_cmd.set_defaults(func=cmd_doctor)
+    p_doctor.set_defaults(func=cmd_doctor)
 
     # self-update
-    update_cmd = subparsers.add_parser(
-        "self-update", help="Update initstack to the latest version"
+    p_update = subparsers.add_parser(
+        "self-update",
+        help="Update initstack to the latest version"
     )
-    update_cmd.set_defaults(func=cmd_self_update)
-
-    return parser
+    p_update.set_defaults(func=cmd_self_update)
