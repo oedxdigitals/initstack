@@ -14,5 +14,7 @@ structures across multiple platforms.
 Initstack adapts to your environment. It does not install system dependencies,
 require sudo, or assume a specific OS or package manager.
 
-## Status
-Early development (v0.2.0)
+## 🏷 Version
+Release: (v1.5.0)
+Stability: (Stable)
+Python: ≥ (3.8)
