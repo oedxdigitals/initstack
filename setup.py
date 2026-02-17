@@ -1,9 +1,8 @@
-# setup.py
 from setuptools import setup, find_packages
 
 setup(
     name="initstack",
-    version="1.5.0",
+    version="2.0.0-dev",
     description="Universal, environment-aware project initializer",
     packages=find_packages(),
     install_requires=[
@@ -12,6 +11,7 @@ setup(
     entry_points={
         "console_scripts": [
             "initstack=initstack.cli.main:main",
+            "ink=initstack.cli.main:main",
         ]
     },
     python_requires=">=3.8",

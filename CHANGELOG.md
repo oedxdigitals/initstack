@@ -1,4 +1,18 @@
 # Changelog
+## [Unreleased] (v2.0.0)
+
+### Added
+- Short CLI alias: `ink`
+- Plugin validation via `doctor`
+- Plugin-based template discovery
+
+### Planned
+- Short command alias: ink
+- Plugin CLI management
+- Template variables and prompts
+- Remote template repositories
+- Non-interactive / CI mode
+- Doctor auto-fix
 
 All notable changes to this project will be documented in this file.
 
